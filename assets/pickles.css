@@ -1,0 +1,39 @@
+.container {
+  display: grid;
+  /* grid-template-columns: 150px, 1fr; */
+  grid-template-columns: 175px 1fr;
+  grid-template-rows: 60px 1fr;
+  gap: 5px 5px;
+  grid-auto-flow: row;
+  grid-template-areas:
+    "NavBar TabBar"
+    "NavBar PlotArea";
+  font-size: 15px;
+  font-family:  Arial, Helvetica, sans-serif;
+
+}
+
+/* top tab bar */
+.TabBar { grid-area: TabBar;
+        font-size: 12px;
+        /*background-color: #cccccc;*/
+         }
+
+/* side data input bar */
+.NavBar { grid-area: NavBar;
+        /* max-width:150px; */
+        min-width:165px;
+        min-height: 700px;  /* plot height + tab bar height (60) */
+        background-color: #aaaaaa;
+        float: left; 
+        padding-top: 10px;
+        padding-right: 5px;
+        padding-bottom: 0px;
+        padding-left: 5px;}
+
+
+
+.PlotArea { 
+  grid-area: PlotArea;
+  float:  left; }
+
