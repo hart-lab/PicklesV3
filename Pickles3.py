@@ -14,9 +14,9 @@ import datetime
 from dash.dependencies import Input, Output
 from html import unescape
 
+DEV_INSTANCE=True  # is this the dev instance or the production one?
 
-
-df = pd.read_table('../Data/master_table_Avana_Score_BF_Zscore_Expr_LOF_GOF_18578genes_941cells_lineage_disease.txt', 
+df = pd.read_table('/var/www/dash/Data/master_table_Avana_Score_BF_Zscore_Expr_LOF_GOF_18578genes_941cells_lineage_disease.txt', 
     dtype={ 
        'Gene':str,
        'Cell_Line':str,
@@ -27,15 +27,11 @@ df = pd.read_table('../Data/master_table_Avana_Score_BF_Zscore_Expr_LOF_GOF_1857
    sep='\t',
    index_col=0)
 
-gof = pd.read_table('../Data/GOF_matrix_941cells_18578genes.csv', index_col=0, sep=',')
-
-lof = pd.read_table('../Data/LOF_matrix_941cells_18578genes.csv', index_col=0, sep=',')
 
 gene_list_dropdown = [ {'label': i, 'value': i } for i in list( df.Gene.unique() )]
 
 gene1_default = 'BRAF'
 gene2_default = 'RAF1'
-#prev_gene = ''
 
 
 #
@@ -49,7 +45,11 @@ for col in my_columns:
 logfile = open('./dash_usage_log.txt', 'a', buffering=1)
 
 app = dash.Dash(__name__)
-app.title = 'Pickles3'
+
+if (DEV_INSTANCE):
+    app.title = 'Pickles3_dev'
+else:
+    app.title = 'Pickles3'
 
 def corr_one_vs_all(gene, bf_mat):
     """Correlate one gene essentiality scores vs. all other genes, cheap and fast.
@@ -157,16 +157,14 @@ app.layout = html.Div(className='container', children=[
     # top tab bar #
     ###############
     html.Div( className='TabBar', children=[
-        dcc.Tabs(id='graph_type', value='tissue', children=[
-            #dcc.Tab(label='Summary', value='summary'),
+        dcc.Tabs(id='graph_type', value='summary', children=[
+            dcc.Tab(label='Summary', value='summary'),
             dcc.Tab(label='Cancer Types', value='tissue'),
             dcc.Tab(label='Co-essentiality', value='coess'),
             dcc.Tab(label='Expression', value='expr'),
             dcc.Tab(label='Mutation', value='muts'),
             dcc.Tab(label='About', value='about'),
             #dcc.Tab(label='Copy Number', value='cna'),
-            #dcc.Tab(label='Top Correlates', value='corrs'),
-            #dcc.Tab(label='Context', value='contexts'),
             ]),
         ]),
 
@@ -185,7 +183,7 @@ app.layout = html.Div(className='container', children=[
 ])
 
 ###
-# end of app. define callbacks.
+# end of layout. define callbacks.
 ###
 
 @app.callback(
@@ -235,9 +233,6 @@ def update_figure(dataset, algo, gene1, gene2, graph_type):
         #   - hide comparison gene
         #   - waterfall plot: query gene essentiality, screens ranked by score
         #
-        #   ####################
-        #   # CURRENTLY UNUSED #
-        #   ####################
         #
         ########################################
         #        
@@ -486,5 +481,8 @@ def update_figure(dataset, algo, gene1, gene2, graph_type):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=False)
+    if (DEV_INSTANCE):
+        app.run_server(debug=True, port=8052)
+    else:
+        app.run_server(debug=False)
 
