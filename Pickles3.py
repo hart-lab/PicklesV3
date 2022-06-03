@@ -15,6 +15,10 @@ from dash.dependencies import Input, Output
 from html import unescape
 
 DEV_INSTANCE=True  # is this the dev instance or the production one?
+#
+# SET TO FALSE IN PRODUCTION INSTANCE
+#
+
 
 df = pd.read_table('/var/www/dash/Data/master_table_Avana_Score_BF_Zscore_Expr_LOF_GOF_18578genes_941cells_lineage_disease.txt', 
     dtype={ 
@@ -51,6 +55,17 @@ if (DEV_INSTANCE):
 else:
     app.title = 'Pickles3'
 
+def cholesky_covariance_warp(df):
+    """
+    Perform cholesky decomposition and "covariance warping" on a genes (rows)
+     by samples (columns) dataframe.
+    returns a dataframe with the same index and columns.
+    """
+    cholsigmainv = np.linalg.cholesky(np.linalg.pinv(np.cov(df.T)))
+    warped_screens = df.values @ cholsigmainv
+    cholesky_df = pd.DataFrame( warped_screens , index=df.index.values, columns=df.columns.values)
+    return cholesky_df
+
 def corr_one_vs_all(gene, bf_mat):
     """Correlate one gene essentiality scores vs. all other genes, cheap and fast.
     Parameters
@@ -68,8 +83,11 @@ def corr_one_vs_all(gene, bf_mat):
       Index = bf_mat index labels, excluding 'gene'
       Columns = 'gene' parameter
     """
-    gene_vector   = bf_mat.loc[[gene]]
-    other_vectors = bf_mat.drop(gene, axis=0)
+
+    normed_matrix = cholesky_covariance_warp(bf_mat)
+
+    gene_vector   = normed_matrix.loc[[gene]]
+    other_vectors = normed_matrix.drop(gene, axis=0)
     n = gene_vector.shape[1]
     mu_x = gene_vector.mean(1)
     mu_y = other_vectors.mean(1)
@@ -79,7 +97,6 @@ def corr_one_vs_all(gene, bf_mat):
     corrmatrix = cov / (s_x.values * s_y.values)
     outframe = pd.DataFrame( index=other_vectors.index.values, columns=[gene], data=corrmatrix.T )
     return outframe
-
 
 
 #####
