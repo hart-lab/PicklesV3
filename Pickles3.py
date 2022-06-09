@@ -478,6 +478,7 @@ def update_figure(dataset, algo, gene1, gene2, graph_type):
             html.Ul(className='about_dataset', children=[
                 html.Li('Avana/Broad: DepMap cell lines screened with the Avana library (20Q4 release)'),
                 html.Li('Score/Sanger: Project Score cell lines screened with the Yusa library (Behan et al release)')]),
+                html.Li('TKOv3/various: TKOv3 (Hart et al 2017) screens from several publications. Expression and mutation data not available.'),
             html.P('Scoring scheme', style={'font-weight':'bold'}),
             html.Ul(className='about_scoring', children=[
                 html.Li('Bayes Factor: BAGEL2 scoring from Kim & Hart, 2021. Positive scores = essential.'),
@@ -487,9 +488,9 @@ def update_figure(dataset, algo, gene1, gene2, graph_type):
             html.P('Comparison gene', style={'font-weight':'bold'}),
             html.P('the query gene\'s fitness is profiled against the comparison gene\'s fitness, expression, or mutation'),
             html.P(''),
-            html.P('Download master data file used in this application (Caution: 1.5GB!):'),
+            html.P('Download master data file used in this application (Caution: 1.65GB!):'),
             dcc.Link( 'Master data file', 
-                href='https://neptune.hart-lab.org/Downloads/master_table_Avana_Score_BF_Zscore_Expr_LOF_GOF_18578genes_941cells_lineage_disease.txt', 
+                href='https://neptune.hart-lab.org/Downloads/master_table_Avana_Score_TKOv3_BF_Zscore_Expr_LOF_GOF_19731genes_1015cells_lineage_disease.txt', 
                 style={'font-weight': 'bold'}),
             ])
         style2 = {'width':'100%','textAlign':'left'}
