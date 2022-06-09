@@ -20,13 +20,15 @@ DEV_INSTANCE=True  # is this the dev instance or the production one?
 #
 
 
-df = pd.read_table('/var/www/dash/Data/master_table_Avana_Score_BF_Zscore_Expr_LOF_GOF_18578genes_941cells_lineage_disease.txt', 
+df = pd.read_table('/var/www/dash/Data/master_table_Avana_Score_TKOv3_BF_Zscore_Expr_LOF_GOF_19731genes_1015cells_lineage_disease.txt', 
     dtype={ 
        'Gene':str,
        'Cell_Line':str,
        'stripped_cell_line_name': str,
        'primary_disease': str,
        'lineage': str
+       #'GOF': bool,
+       #'LOF': bool
    },
    sep='\t',
    index_col=0)
@@ -41,10 +43,10 @@ gene2_default = 'RAF1'
 #
 # initialize matrices for coessentiality calcs
 #
-my_columns = ['Avana_BF','Avana_Z','Score_BF','Score_Z']
+my_columns = ['Avana_BF','Avana_Z','Score_BF','Score_Z','TKOv3_BF','TKOv3_Z']
 essentiality_matrices = {}
 for col in my_columns:
-    essentiality_matrices[col] = df.drop( df.index.values[ np.isnan( df[col].values) ], axis=0 ).pivot( index='Gene', columns='Cell_Line', values=col)
+    essentiality_matrices[col] = df.drop( df.index.values[ np.isnan( df[col].values) ], axis=0 ).pivot( index='Gene', columns='stripped_cell_line_name', values=col)
 
 logfile = open('./dash_usage_log.txt', 'a', buffering=1)
 
@@ -61,6 +63,11 @@ def cholesky_covariance_warp(df):
      by samples (columns) dataframe.
     returns a dataframe with the same index and columns.
     """
+    # first, drop missing data:
+    df.dropna(axis=0, how='any', inplace=True)
+    # 
+    # then do the inv, etc.
+    #
     cholsigmainv = np.linalg.cholesky(np.linalg.pinv(np.cov(df.T)))
     warped_screens = df.values @ cholsigmainv
     cholesky_df = pd.DataFrame( warped_screens , index=df.index.values, columns=df.columns.values)
@@ -115,6 +122,7 @@ app.layout = html.Div(className='container', children=[
             options=[
                 {'label': 'Avana/Broad', 'value': 'Avana'},
                 {'label': 'Score/Sanger', 'value': 'Score'},
+                {'label': 'TKOv3/various', 'value': 'TKOv3'},
             ],
             value='Avana',
             id='dataset',
@@ -254,8 +262,8 @@ def update_figure(dataset, algo, gene1, gene2, graph_type):
         ########################################
         #        
         d1 = df[ df.Gene==gene1].sort_values(my_column, ascending=ascend)
-        cells_not_assayed = np.where( np.isnan( d1[my_column]) )[0]
-        d1.drop( d1.index.values[ cells_not_assayed ], axis=0, inplace=True)    
+        #cells_not_assayed = np.where( np.isnan( d1[my_column]) )[0]
+        d1.dropna(axis=0, how='all', inplace=True, subset=[my_column])      # dro   
         d1['idx'] = range(1,d1.shape[0]+1)
         fig = px.scatter(d1, x='idx', y=my_column,
                      hover_name='stripped_cell_line_name',
@@ -265,7 +273,7 @@ def update_figure(dataset, algo, gene1, gene2, graph_type):
                          'primary_disease' : 'Primary Disease'
                      },
                      category_orders = {
-                        'primary_disease' : sorted( d1.primary_disease.values )
+                        'primary_disease' : sorted( list( d1.primary_disease.values ) )
                      },
                      color='primary_disease',
                      width=plot_width, height=plot_height)
@@ -279,9 +287,9 @@ def update_figure(dataset, algo, gene1, gene2, graph_type):
         #   - calculate 
         ########################################
         #        
-        d1 = df[ df.Gene==gene1]
-        cells_not_assayed = np.where( np.isnan( d1[my_column]) )[0]
-        d1.drop( d1.index.values[ cells_not_assayed ], axis=0, inplace=True)    
+        d1 = df[ df.Gene==gene1].dropna(axis=0, subset=[my_column])
+        #cells_not_assayed = np.where( np.isnan( d1[my_column]) )[0]
+        #d1.drop( d1.index.values[ cells_not_assayed ], axis=0, inplace=True)    
         sorted_list = d1.groupby('primary_disease').median()[my_column].sort_values( ascending=ascend )
         disease_rank = pd.DataFrame( index=sorted_list.index.values, columns=['Rank'], data=range(1,len(sorted_list)+1) )
         fig = px.strip(d1, x='primary_disease', y=my_column,
@@ -328,7 +336,7 @@ def update_figure(dataset, algo, gene1, gene2, graph_type):
                          'primary_disease' : 'Primary Disease'
                      },
                      category_orders = {
-                        'primary_disease' : sorted( d.primary_disease.values )
+                        'primary_disease' : sorted( list( d.primary_disease.values ) )
                      },
                      color='primary_disease',
                      width=plot_width, height=plot_height)  
