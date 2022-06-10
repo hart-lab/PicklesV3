@@ -477,16 +477,22 @@ def update_figure(dataset, algo, gene1, gene2, graph_type):
             html.P('Dataset', style={'font-weight':'bold'}),
             html.Ul(className='about_dataset', children=[
                 html.Li('Avana/Broad: DepMap cell lines screened with the Avana library (20Q4 release)'),
-                html.Li('Score/Sanger: Project Score cell lines screened with the Yusa library (Behan et al release)')]),
-                html.Li('TKOv3/various: TKOv3 (Hart et al 2017) screens from several publications. Expression and mutation data not available.'),
+                html.Li('Score/Sanger: Project Score cell lines screened with the Yusa library (Behan et al Nature 2019)'),
+                html.Li('TKOv3/various: TKOv3 (Hart et al G3 2017) screens from several publications. Expression and mutation data not available.')
+                ]),
             html.P('Scoring scheme', style={'font-weight':'bold'}),
             html.Ul(className='about_scoring', children=[
-                html.Li('Bayes Factor: BAGEL2 scoring from Kim & Hart, 2021. Positive scores = essential.'),
-                html.Li('Z-score: Gaussian mixture model Z-scores from Lenoir et al 2021 (bioRxiv). Negative scores=essential')]),
+                html.Li('Bayes Factor: BAGEL2 scoring from Kim & Hart, Genome Medicine, 2021. Positive scores = essential.'),
+                html.Li('Z-score: Gaussian mixture model Z-scores from Lenoir et al, Nature Communications 2021. Negative scores=essential')
+                ]),
             html.P('Query gene', style={'font-weight':'bold'}),
-            html.P('the gene selected for fitness profiling'),
+            html.Ul(className='about_querygene', children=[
+                html.Li('the gene selected for fitness profiling')
+                ]),
             html.P('Comparison gene', style={'font-weight':'bold'}),
-            html.P('the query gene\'s fitness is profiled against the comparison gene\'s fitness, expression, or mutation'),
+            html.Ul(className='about_comparisongene', children=[
+                html.Li('the query gene\'s fitness is profiled against the comparison gene\'s fitness, expression, or mutation. Can be the same gene.')
+                ]),
             html.P(''),
             html.P('Download master data file used in this application (Caution: 1.65GB!):'),
             dcc.Link( 'Master data file', 
