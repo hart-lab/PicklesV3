@@ -20,7 +20,7 @@ DEV_INSTANCE=True  # is this the dev instance or the production one?
 #
 
 
-df = pd.read_table('/var/www/dash/Data/master_table_Avana_Score_TKOv3_BF_Zscore_Expr_LOF_GOF_20085genes_1162cells_lineage_disease.txt', 
+df = pd.read_table('/var/www/dash/Data/master_table_Avana_Score_TKOv3_BF_Zscore_Expr_LOF_GOF_18959genes_1162cells_lineage_disease.txt', 
     dtype={ 
        'Gene':str,
        'Cell_Line':str,
