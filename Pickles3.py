@@ -20,7 +20,7 @@ DEV_INSTANCE=True  # is this the dev instance or the production one?
 #
 
 
-df = pd.read_table('/var/www/dash/Data/master_table_Avana_Score_TKOv3_BF_Zscore_Expr_LOF_GOF_19731genes_1015cells_lineage_disease.txt', 
+df = pd.read_table('/var/www/dash/Data/master_table_Avana_Score_TKOv3_BF_Zscore_Expr_LOF_GOF_20085genes_1162cells_lineage_disease.txt', 
     dtype={ 
        'Gene':str,
        'Cell_Line':str,
@@ -43,7 +43,7 @@ gene2_default = 'RAF1'
 #
 # initialize matrices for coessentiality calcs
 #
-my_columns = ['Avana_BF','Avana_Z','Score_BF','Score_Z','TKOv3_BF','TKOv3_Z']
+my_columns = ['Avana_BF','Avana_Z','Avana_Chronos','Score_BF','Score_Z','TKOv3_BF','TKOv3_Z']
 essentiality_matrices = {}
 for col in my_columns:
     essentiality_matrices[col] = df.drop( df.index.values[ np.isnan( df[col].values) ], axis=0 ).pivot( index='Gene', columns='stripped_cell_line_name', values=col)
@@ -117,33 +117,38 @@ app.layout = html.Div(className='container', children=[
     #################
     html.Div(  className='NavBar', children=[ 
         html.H2('PICKLES v3'),
-        html.Label('Which dataset?'),
+        html.Label('Which dataset/score?'),
         dcc.RadioItems(
             options=[
-                {'label': 'Avana/Broad', 'value': 'Avana'},
-                {'label': 'Score/Sanger', 'value': 'Score'},
-                {'label': 'TKOv3/various', 'value': 'TKOv3'},
+                {'label': 'Avana/Chronos', 'value': 'Avana_Chronos'},
+                {'label': 'Avana/BF', 'value': 'Avana_BF'},
+                {'label': 'Avana/Z score', 'value': 'Avana_Z'},
+                {'label': 'Score/BF', 'value': 'Score_BF'},
+                {'label': 'Score/Z score', 'value': 'Score_Z'},
+                {'label': 'TKOv3/BF', 'value': 'TKOv3_BF'},
+                {'label': 'TKOv3/Z score', 'value': 'TKOv3_Z'},
+                  
             ],
-            value='Avana',
+            value='Avana_BF',
             id='dataset',
             persistence=True,
             persistence_type='session',
             labelStyle={'display': 'block'},
         ),
         html.Br(),
-        html.Label('Which scoring scheme?'),
-        dcc.RadioItems(
-            options=[
-                {'label': 'Bayes Factor', 'value': 'BF'},
-                {'label': 'Z-score', 'value': 'Z'},
-            ],
-            value='BF',
-            id='algo',
-            persistence=True,
-            persistence_type='local',
-            labelStyle={'display': 'block'},
+        #html.Label('Which scoring scheme?'),
+        #dcc.RadioItems(
+        #    options=[
+        #        {'label': 'Bayes Factor', 'value': 'BF'},
+        #        {'label': 'Z-score', 'value': 'Z'},
+        #    ],
+        #    value='BF',
+        #    id='algo',
+        #    persistence=True,
+        #    persistence_type='local',
+        #    labelStyle={'display': 'block'},
 
-        ),
+        #),
         html.Br(),
 
         html.Label('Query gene:'),
@@ -219,12 +224,13 @@ app.layout = html.Div(className='container', children=[
     Output('display_area_text', component_property='children'),
     Output('DisplayAreaText', 'style'),
     Input('dataset','value'),
-    Input('algo', 'value'),
+    #Input('algo', 'value'),
     Input('gene1', 'value'),
     Input('gene2', 'value'),
     Input('graph_type', 'value'))
 
-def update_figure(dataset, algo, gene1, gene2, graph_type):
+#def update_figure(dataset, algo, gene1, gene2, graph_type):
+def update_figure(dataset, gene1, gene2, graph_type):
     style0 = {'width':'100%','textAlign':'center'}
     style1 = {'width':'100%','textAlign':'left', 'display': 'none'}
     style2 = {'width':'100%','textAlign':'left', 'display': 'none'}
@@ -232,7 +238,9 @@ def update_figure(dataset, algo, gene1, gene2, graph_type):
     #gene2 = gene2.upper()
     if (not gene2):
         gene2 = gene1
-    my_column = dataset + '_' + algo
+    #my_column = dataset + '_' + algo
+    my_column = dataset
+    algo = dataset.split('_')[1]
     info_area_context_text_content = ''
     display_area_context_text_content = ''
     plot_width = 800
@@ -241,7 +249,7 @@ def update_figure(dataset, algo, gene1, gene2, graph_type):
     logstring = nowstring + '\t' + my_column + '\t' + graph_type + '\t' + gene1 + '\t' + gene2 + '\n'
     logfile.write(logstring)
 
-    if (algo=='BF'):
+    if ('_BF' in my_column):
         ascend = False
     else:  
         ascend = True
