@@ -14,7 +14,7 @@ import datetime
 from dash.dependencies import Input, Output
 from html import unescape
 
-DEV_INSTANCE=True  # is this the dev instance or the production one?
+DEV_INSTANCE=False  # is this the dev instance or the production one?
 #
 # SET TO FALSE IN PRODUCTION INSTANCE
 #
@@ -505,7 +505,7 @@ def update_figure(dataset, gene1, gene2, graph_type):
             html.P(children=[
                 'Download master data file used in this application (Caution: 1.65GB!):  ', 
                 dcc.Link( 'Master data file', 
-                    href='https://neptune.hart-lab.org/Downloads/master_table_Avana_Score_TKOv3_BF_Zscore_Expr_LOF_GOF_19731genes_1015cells_lineage_disease.txt', 
+                    href='https://neptune.hart-lab.org/Downloads/master_table_Avana_Score_TKOv3_BF_Zscore_Expr_LOF_GOF_18959genes_1162cells_lineage_disease.txt', 
                     style={'font-weight': 'bold'}),
                 ]),
             ])
