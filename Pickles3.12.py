@@ -465,115 +465,142 @@ def update_figure(dataset, gene1, gene2, graph_type):
         style2 = {'width':'100%','textAlign':'left', 'height':450}
 
     elif (graph_type == 'expr'):
-        #
-        ########################################
-        # "EXPRESSION" tab 
-        #   - show comparison gene
-        #   - scatterplot of query gene essentialty vs comparison gene expression
-        #   - TODO: show correlates?
-        ########################################
-        #
-        d1 = df[ df.Gene==gene1][[my_column,'stripped_cell_line_name']]
-        d1.columns = [my_column + '_' + gene1, 'stripped_cell_line_name']
-        d2 = df[ df.Gene==gene2][['Expr','stripped_cell_line_name','primary_disease']]
-        d2.columns = ['Expr_' + gene2, 'stripped_cell_line_name','primary_disease']
-        d = d1.merge(d2, on='stripped_cell_line_name')
-        
-        fig = px.scatter(d, x=my_column + '_' + gene1, 
-                     y='Expr_' + gene2,
-                     hover_name='stripped_cell_line_name',
-                     trendline='ols',
-                     trendline_scope='overall',
-                     trendline_color_override='lightgray',
-                     labels = {
-                         my_column + '_' + gene1:  gene1 + ', ' + algo + ' (' + dataset + ')',
-                         'Expr_' + gene2:  gene2 + ', log(TPM)',
-                         'primary_disease' : 'Primary Disease'
-                     },
-                     category_orders = {
-                        'primary_disease' : sorted( d.primary_disease.values )
-                     },
-                     color='primary_disease',
-                     width=plot_width, height=plot_height)  
-                     #size_max=55)
-        style1 = {'width':'100%','textAlign':'left'}
-        info_area_context_text_content = 'Comparison gene:'
 
-        #
-        ####
-        # calculate and display top expression correlates with query gene.
-        ####
-        #
-        # calculate all corrs
-        #
-        my_correlates = corr_one_vs_Expr_all( gene1, essentiality_matrices[my_column], expression_matrix )
-        my_correlates[gene1] = round( my_correlates[gene1], 3)
-        my_correlates.columns = ['PCC']
-        my_correlates.index.name = gene1 
-        top_corrs = my_correlates.nlargest(10, 'PCC')
-        bot_corrs = my_correlates.nsmallest(10, 'PCC')
-        # 
-        display_area_context_text_content = html.Div(children=[
-
-            html.Div(id='top_correlates', children = [
-                html.H3('Top positive correlates'),
-                dt.DataTable(
-                    data=top_corrs.reset_index().to_dict('records'),
-                    columns=[{'name': i, 'id': i} for i in top_corrs.reset_index().columns],
-                    fixed_rows={'headers': True},
-                    style_header={'fontSize':'14px', 'font-family':'sans-serif','fontWeight': 'bold','backgroundColor': '#e1e4eb'},
-                    style_cell={'minWidth': 100, 'width': 100, 'maxWidth': 100,'fontSize':'12px', 'font-family':'sans-serif'},
-                    style_table={'height': 400, 'width':220}
-                    )
-                ], style={'display':'inline-block', 'padding-right':'5px'}),
-            html.Div(id='bot_correlates', children = [
-                html.H3('Top negative correlates'),
-                dt.DataTable(
-                    data=bot_corrs.reset_index().to_dict('records'),
-                    columns=[{'name': i, 'id': i} for i in bot_corrs.reset_index().columns],
-                    fixed_rows={'headers': True},
-                    style_header={'fontSize':'14px', 'font-family':'sans-serif','fontWeight': 'bold','backgroundColor': '#e1e4eb'},
-                    style_cell={'minWidth': 100, 'width': 100, 'maxWidth': 100,'fontSize':'12px', 'font-family':'sans-serif'},
-                    style_table={'height': 400, 'width':220}
-                    )
-                ], style={'display':'inline-block','padding-left':'5px'}),
+        if ('TKOv3' in my_column):
+            #
+            ########################################
+            # TKOv3 does not have expression data
+            ########################################
+            #
+            fig = px.scatter(x=[1], y=[1], width=10, height=10)
+            style0 = {'width': '100%', 'textAlign': 'left', 'display': 'none'}
+            display_area_context_text_content = html.Div(children=[
+                html.P('Expression data not available for TKOv3 screens',
+                       style={'font-weight': 'bold'})
             ])
-        style2 = {'width':'100%','textAlign':'left', 'height':450}
+            style2 = {'width': '100%', 'textAlign': 'left', 'height': 450}
+            essStyle = {'display':'none'}
+
+        else:
+            #
+            ########################################
+            # "EXPRESSION" tab 
+            #   - show comparison gene
+            #   - scatterplot of query gene essentialty vs comparison gene expression
+            #   - TODO: show correlates?
+            ########################################
+            #
+            d1 = df[ df.Gene==gene1][[my_column,'stripped_cell_line_name']]
+            d1.columns = [my_column + '_' + gene1, 'stripped_cell_line_name']
+            d2 = df[ df.Gene==gene2][['Expr','stripped_cell_line_name','primary_disease']]
+            d2.columns = ['Expr_' + gene2, 'stripped_cell_line_name','primary_disease']
+            d = d1.merge(d2, on='stripped_cell_line_name')
+            
+            fig = px.scatter(d, x=my_column + '_' + gene1, 
+                         y='Expr_' + gene2,
+                         hover_name='stripped_cell_line_name',
+                         trendline='ols',
+                         trendline_scope='overall',
+                         trendline_color_override='lightgray',
+                         labels = {
+                             my_column + '_' + gene1:  gene1 + ', ' + algo + ' (' + dataset + ')',
+                             'Expr_' + gene2:  gene2 + ', log(TPM)',
+                             'primary_disease' : 'Primary Disease'
+                         },
+                         category_orders = {
+                            'primary_disease' : sorted( d.primary_disease.values )
+                         },
+                         color='primary_disease',
+                         width=plot_width, height=plot_height)  
+                         #size_max=55)
+            style1 = {'width':'100%','textAlign':'left'}
+            info_area_context_text_content = 'Comparison gene:'
+
+            #
+            ####
+            # calculate and display top expression correlates with query gene.
+            ####
+            #
+            # calculate all corrs
+            #
+            my_correlates = corr_one_vs_Expr_all( gene1, essentiality_matrices[my_column], expression_matrix )
+            my_correlates[gene1] = round( my_correlates[gene1], 3)
+            my_correlates.columns = ['PCC']
+            my_correlates.index.name = gene1 
+            top_corrs = my_correlates.nlargest(10, 'PCC')
+            bot_corrs = my_correlates.nsmallest(10, 'PCC')
+            # 
+            display_area_context_text_content = html.Div(children=[
+
+                html.Div(id='top_correlates', children = [
+                    html.H3('Top positive correlates'),
+                    dt.DataTable(
+                        data=top_corrs.reset_index().to_dict('records'),
+                        columns=[{'name': i, 'id': i} for i in top_corrs.reset_index().columns],
+                        fixed_rows={'headers': True},
+                        style_header={'fontSize':'14px', 'font-family':'sans-serif','fontWeight': 'bold','backgroundColor': '#e1e4eb'},
+                        style_cell={'minWidth': 100, 'width': 100, 'maxWidth': 100,'fontSize':'12px', 'font-family':'sans-serif'},
+                        style_table={'height': 400, 'width':220}
+                        )
+                    ], style={'display':'inline-block', 'padding-right':'5px'}),
+                html.Div(id='bot_correlates', children = [
+                    html.H3('Top negative correlates'),
+                    dt.DataTable(
+                        data=bot_corrs.reset_index().to_dict('records'),
+                        columns=[{'name': i, 'id': i} for i in bot_corrs.reset_index().columns],
+                        fixed_rows={'headers': True},
+                        style_header={'fontSize':'14px', 'font-family':'sans-serif','fontWeight': 'bold','backgroundColor': '#e1e4eb'},
+                        style_cell={'minWidth': 100, 'width': 100, 'maxWidth': 100,'fontSize':'12px', 'font-family':'sans-serif'},
+                        style_table={'height': 400, 'width':220}
+                        )
+                    ], style={'display':'inline-block','padding-left':'5px'}),
+                ])
+            style2 = {'width':'100%','textAlign':'left', 'height':450}
 
 
 
     elif (graph_type == 'muts'):
-        #
-        ########################################
-        # "MUTATIONS" tab 
-        #   - show comparison gene
-        #   - strip plot by category of comparison gene
-        ########################################
-        #
-        d1 = df[ df.Gene==gene1][[my_column,'stripped_cell_line_name','primary_disease']]
-        d2 = df[ df.Gene==gene2][['LOF','GOF','stripped_cell_line_name']]
-        d2['MUT'] = 'WT'
-        #d2.loc[ d2[ d2.GOF==True].index.values, 'MUT'] = 'GOF'
-        d2.loc[ d2[ d2.GOF==True].index.values, 'MUT'] = 'Hotspot'
-        d2.loc[ d2[ d2.LOF==True].index.values, 'MUT'] = 'LOF'
-        d = d1.merge(d2, on='stripped_cell_line_name', how='inner')
-        
-        fig = px.strip(d, x='MUT',
-                     y=my_column,
-                     hover_name='stripped_cell_line_name',
-                     labels = {
-                         my_column:  gene1 + ', ' + algo + ' (' + dataset + ')',
-                         'MUT':  gene2 + ' mutation state',
-                         'primary_disease' : 'Primary Disease'
-                     },
-                     category_orders = {
-                        'primary_disease' : sorted( d.primary_disease.values )
-                     },
-                     color='primary_disease',
-                     width=plot_width, height=plot_height)  
-                     #size_max=55)
-        style1 = {'width':'100%','textAlign':'left'}
-        info_area_context_text_content = 'Comparison gene:'
+
+        if ('TKOv3' in my_column):
+            fig = px.scatter(x=[1], y=[1], width=10, height=10)
+            style0 = {'width': '100%', 'textAlign': 'left', 'display': 'none'}
+            display_area_context_text_content = html.Div(children=[
+                html.P('Mutation data not available for TKOv3 screens',
+                       style={'font-weight': 'bold'})
+            ])
+            style2 = {'width': '100%', 'textAlign': 'left', 'height': 450}
+        else:
+            #
+            ########################################
+            # "MUTATIONS" tab 
+            #   - show comparison gene
+            #   - strip plot by category of comparison gene
+            ########################################
+            #
+            d1 = df[ df.Gene==gene1][[my_column,'stripped_cell_line_name','primary_disease']]
+            d2 = df[ df.Gene==gene2][['LOF','GOF','stripped_cell_line_name']]
+            d2['MUT'] = 'WT'
+            #d2.loc[ d2[ d2.GOF==True].index.values, 'MUT'] = 'GOF'
+            d2.loc[ d2[ d2.GOF==True].index.values, 'MUT'] = 'Hotspot'
+            d2.loc[ d2[ d2.LOF==True].index.values, 'MUT'] = 'LOF'
+            d = d1.merge(d2, on='stripped_cell_line_name', how='inner')
+            
+            fig = px.strip(d, x='MUT',
+                         y=my_column,
+                         hover_name='stripped_cell_line_name',
+                         labels = {
+                             my_column:  gene1 + ', ' + algo + ' (' + dataset + ')',
+                             'MUT':  gene2 + ' mutation state',
+                             'primary_disease' : 'Primary Disease'
+                         },
+                         category_orders = {
+                            'primary_disease' : sorted( d.primary_disease.values )
+                         },
+                         color='primary_disease',
+                         width=plot_width, height=plot_height)  
+                         #size_max=55)
+            style1 = {'width':'100%','textAlign':'left'}
+            info_area_context_text_content = 'Comparison gene:'
 
 
 
